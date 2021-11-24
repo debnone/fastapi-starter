@@ -18,7 +18,6 @@ class PostCreate(PostBase):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    validate_email_code: str
 
 
 class ResetPassword(UserCreate):

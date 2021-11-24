@@ -41,6 +41,22 @@ def generate_reset_code():
     )
 
 
+# add validate code to database after user signup has been completed
+def add_code(email, code, db):
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise Error(code(404), "User not found")
+    user.validate_email_code = code
+    db.commit()
+    return user
+
+
+# def validate_email_code(email, code, db):
+#     user = db.query(models.User).filter(models.User.email == email).first()
+#     if not user:
+#         raise Error(code(404), "User not found")
+
+
 # Sendgrid email function
 def send_email(email, subject, message):
     message = Mail(
@@ -203,7 +219,7 @@ def send_code_html(code, language):
             </td>
           </tr>
           <tr>
-            <td style="padding:0;">
+            <td style="padding:0; text-align: center;">
               <h2>{paragraph}</h2>
             </td>
           </tr>

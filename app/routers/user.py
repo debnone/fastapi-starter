@@ -1,6 +1,6 @@
 from ..database import engine, get_db
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, HTTPException, status, Response, APIRouter
+from fastapi import FastAPI, HTTPException, status, Response, APIRouter, BackgroundTasks
 from fastapi.params import Body, Depends
 from .. import models, schemas, utils, oauth2
 
@@ -12,17 +12,27 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_user(
+    user: schemas.UserCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
 
     hashed_password = utils.hash(user.password)
     user.password = hashed_password
     code = utils.generate_reset_code()
     email_code = utils.send_code_html(code, language="heb")
-    user.validate_email_code = code
+    # user.validate_email_code = code
     new_user = models.User(**user.dict())
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    utils.add_code(user.email, code, db)
+
+    # background_tasks.add_task(
+    #     utils.send_email, user.email, "Virfy yor email", email_code
+    # )
 
     utils.send_email(
         user.email, "Virfy yor email", email_code,

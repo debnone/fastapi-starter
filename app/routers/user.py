@@ -30,7 +30,7 @@ def create_user(
 
     utils.add_code(user.email, code, db)
 
-    # here down is the code for sending the email in background test
+    # here down is the code for sending the email in background
     # background_tasks.add_task
     #     utils.send_email, user.email, "Virfy yor email", email_code
     # )
